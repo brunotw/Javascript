@@ -4,15 +4,22 @@ var Sdk = window.Sdk || {};
 var startTime = null;
 
 function executeMultipleRequestSample(numberOfRecords) {
-    startTime = performance.now();
+    start();
 
-    var requests = [];
+    var changeSet = [];
 
     for (var i = 0; i < numberOfRecords; i++) {
         var account = getAccountSample();
         var createAccountRequest = new Sdk.CreateRequest("account", account);
-        requests.push(createAccountRequest);
+        changeSet.push(createAccountRequest);
     }
+
+    var failedAccount = getFailedSample();
+    var failRequest = new Sdk.CreateRequest("account", failedAccount);
+    changeSet.push(failRequest);
+
+
+    var requests = [changeSet];
 
     Xrm.WebApi.online.executeMultiple(requests).then(successCallback, errorCallback);
 
@@ -22,7 +29,12 @@ function executeMultipleRequestSample(numberOfRecords) {
     }
 
     function errorCallback(error) {
+        end();
         console.log(error.message);
+    }
+
+    function start() {
+        startTime = performance.now();
     }
 
     function end() {
@@ -63,6 +75,15 @@ function getAccountSample() {
         creditonhold: true,
         creditlimit: 1000,
         description: "description"
+    };
+
+    return account;
+}
+
+function getFailedSample() {
+    var account = {
+        name: "Test Account " + performance.now(),
+        creditlimit: "this is supposed to be a number",
     };
 
     return account;
